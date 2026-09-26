@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>MADZ RUSH: STREET DRIVE</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05050a;color:#fff;font-family:Inter,system-ui,Arial,sans-serif}
+button,input{font:inherit}button{border:0;cursor:pointer;color:#fff}
+#game{position:fixed;inset:0}canvas{display:block}
+.screen{position:absolute;inset:0;display:none}.screen.active{display:flex}
+.panel{background:linear-gradient(145deg,rgba(18,18,30,.94),rgba(7,7,15,.9));border:1px solid rgba(190,100,255,.28);box-shadow:0 20px 70px #0009,0 0 40px #8b32ff18;backdrop-filter:blur(18px);border-radius:24px}
+#login{align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 50% 30%,#4b1670 0,#110719 38%,#05050a 75%)}
+.loginbox{width:min(420px,94vw);padding:30px}.logo{font-weight:1000;letter-spacing:3px;font-size:30px;text-align:center}.logo span{color:#b75cff}.tag{text-align:center;color:#aaa;margin:6px 0 24px}
+.field{width:100%;padding:14px 16px;margin:7px 0;border-radius:14px;border:1px solid #ffffff18;background:#ffffff09;color:white;outline:none}.field:focus{border-color:#ad55ff}
+.btn{padding:13px 17px;border-radius:14px;background:#ffffff0c;border:1px solid #ffffff18;transition:.2s}.btn:hover{transform:translateY(-1px);background:#ffffff16}.primary{background:linear-gradient(135deg,#9d35ff,#5720c9);box-shadow:0 10px 30px #8e31ff44}.row{display:flex;gap:9px}.row>*{flex:1}
+.small{font-size:12px;color:#888;text-align:center;margin-top:14px}
+#lobby{padding:18px;flex-direction:column;background:radial-gradient(circle at 50% 40%,#241033 0,#08070d 58%,#040409 100%)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:4}.stats{display:flex;gap:8px;flex-wrap:wrap}.chip{padding:8px 12px;border-radius:13px;background:#ffffff0b;border:1px solid #ffffff12;font-size:13px}
+#showroom{position:absolute;inset:70px 0 105px;z-index:1}.menu{position:absolute;z-index:5;left:50%;bottom:22px;transform:translateX(-50%);display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.menu .btn{min-width:88px}
+.title{font-size:clamp(20px,4vw,34px);font-weight:900}.sub{color:#aaa;font-size:13px}
+#garage,#shop,#settings,#about,#result{align-items:center;justify-content:center;padding:20px;background:#05050aee}.modal{width:min(900px,96vw);max-height:92vh;overflow:auto;padding:22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.card{padding:14px;border-radius:17px;background:#ffffff08;border:1px solid #ffffff12}.card.sel{border-color:#a747ff;box-shadow:0 0 25px #a747ff22}.carmini{height:90px;border-radius:12px;background:linear-gradient(145deg,#272733,#0d0d13);display:grid;place-items:center;font-size:46px}
+.bar{height:7px;background:#ffffff0b;border-radius:8px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#7b2cff,#d45cff);width:70%}
+.close{float:right;background:#ffffff10;width:38px;height:38px;border-radius:12px}
+.setting{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #ffffff0b}.toggle{width:48px;height:27px;border-radius:20px;background:#333;position:relative}.toggle i{position:absolute;width:21px;height:21px;top:3px;left:3px;border-radius:50%;background:#aaa;transition:.2s}.toggle.on{background:#8f39e8}.toggle.on i{left:24px;background:#fff}
+#race{background:#000}.hud{position:absolute;inset:12px;z-index:20;pointer-events:none}.hud>*{pointer-events:auto}.raceTop{display:flex;justify-content:space-between}.hudbox{padding:9px 12px;border-radius:13px;background:#05050acc;border:1px solid #ffffff18;backdrop-filter:blur(8px)}#count{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(70px,18vw,170px);font-weight:1000;text-shadow:0 8px 40px #000;z-index:30;pointer-events:none}.controls{position:absolute;inset:auto 14px 14px;display:flex;justify-content:space-between;align-items:end;z-index:25}.ctrlgroup{display:flex;gap:10px}.ctrl{width:64px;height:64px;border-radius:50%;background:#ffffff12;border:1px solid #ffffff2a;backdrop-filter:blur(8px);font-weight:900;touch-action:none}.ctrl.big{width:88px;height:88px;background:#ffffff16}.nitro{border-color:#9d4cff}.pause{position:absolute;right:0;top:0;width:42px;height:42px;border-radius:12px;background:#ffffff10}
+#speed{font-size:28px;font-weight:900}.hidden{display:none!important}.center{text-align:center}.resultbig{font-size:64px;font-weight:1000;color:#c067ff}.note{color:#aaa;font-size:13px}
+@media(max-width:600px){.menu .btn{min-width:72px;padding:10px 9px;font-size:12px}.modal{padding:16px}.topbar{align-items:flex-start}.stats{max-width:70vw}.ctrl{width:58px;height:58px}.ctrl.big{width:78px;height:78px}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+
+<section id="login" class="screen active">
+ <div class="panel loginbox">
+  <div class="logo">MADZ <span>RUSH</span></div><div class="tag">STREET DRIVE</div>
+  <input id="username" class="field" placeholder="Username" maxlength="18">
+  <input id="password" class="field" placeholder="Password" type="password" maxlength="32">
+  <div class="row"><button class="btn primary" id="loginBtn">LOGIN</button><button class="btn" id="registerBtn">DAFTAR</button></div>
+  <button class="btn" id="okBtn" style="width:100%;margin-top:9px">OK</button>
+  <div id="loginMsg" class="small">Data akun demo tersimpan lokal di perangkat.</div>
+ </div>
+</section>
+
+<section id="lobby" class="screen">
+ <div class="topbar">
+  <div><div class="title">MADZ RUSH</div><div class="sub">Street Drive • Showroom</div></div>
+  <div class="stats"><div class="chip">👤 <span id="userLabel">Player</span></div><div class="chip">LV <span id="levelLabel">1</span></div><div class="chip">🪙 <span id="coinLabel">1000</span></div><div class="chip">🏆 <span id="winLabel">0</span></div></div>
+ </div>
+ <div id="showroom"></div>
+ <div class="menu">
+  <button class="btn primary" id="playBtn">PLAY</button><button class="btn" id="garageBtn">GARAGE</button><button class="btn" id="shopBtn">SHOP</button><button class="btn" id="settingsBtn">SETTINGS</button><button class="btn" id="aboutBtn">ABOUT</button>
+ </div>
+</section>
+
+<section id="garage" class="screen"><div class="panel modal">
+ <button class="close" data-close="garage">×</button><h2>GARAGE</h2><div id="carGrid" class="grid"></div><div id="carStats" style="margin-top:15px"></div>
+</div></section>
+
+<section id="shop" class="screen"><div class="panel modal">
+ <button class="close" data-close="shop">×</button><h2>SHOP</h2><div class="grid">
+  <div class="card"><h3>Starter Coins</h3><p>+500 🪙</p><button class="btn primary" id="coinsBtn">CLAIM DEMO</button></div>
+  <div class="card"><h3>Track: Neon Loop</h3><p>Unlock dengan 700 koin.</p><button class="btn" id="trackBtn">UNLOCK</button></div>
+ </div>
+</div></section>
+
+<section id="settings" class="screen"><div class="panel modal">
+ <button class="close" data-close="settings">×</button><h2>SETTINGS</h2>
+ <div id="settingsList"></div><div style="margin-top:14px"><label>Music Volume <input id="musicVol" type="range" min="0" max="1" step=".05"></label></div>
+ <div style="margin-top:14px"><label>SFX Volume <input id="sfxVol" type="range" min="0" max="1" step=".05"></label></div>
+</div></section>
+
+<section id="about" class="screen"><div class="panel modal">
+ <button class="close" data-close="about">×</button><h2>ABOUT</h2><p><b>MADZ RUSH: STREET DRIVE</b></p><p class="note">Game balap 3D orisinal dengan showroom, garage, AI lawan, countdown, nitro, upgrade, XP, koin, achievement dan pengaturan grafis.</p><p class="note">Developer: MADZ PROJECT<br>Version: 1.0.0<br>Semua desain dan identitas game dibuat untuk proyek ini. Audio default menggunakan Web Audio sederhana.</p>
+</div></section>
+
+<section id="result" class="screen"><div class="panel modal center">
+ <div class="sub">RACE COMPLETE</div><div id="resultPos" class="resultbig">1st</div><p>Time: <b id="resultTime">00:00.00</b></p><p>Best Time: <b id="bestTime">--</b></p><p>Reward: <b id="reward">+0 🪙</b> • <b id="xpReward">+0 XP</b></p>
+ <div class="row"><button class="btn primary" id="nextBtn">NEXT RACE</button><button class="btn" id="retryBtn">RETRY</button><button class="btn" id="backBtn">LOBBY</button></div>
+</div></section>
+
+<section id="race" class="screen">
+ <div class="hud">
+  <div class="raceTop"><div class="hudbox">POS <b id="posHud">1/6</b> • LAP <b id="lapHud">1/3</b></div><div class="hudbox"><button class="pause" id="pauseBtn">Ⅱ</button><span id="timerHud">00:00.00</span></div></div>
+  <div class="hudbox" style="position:absolute;left:0;bottom:110px"><div id="speed">0</div><div class="sub">KM/H</div></div>
+  <div class="hudbox" style="position:absolute;right:0;bottom:110px"><div>NITRO</div><div class="bar" style="width:110px"><i id="nitroBar"></i></div></div>
+  <div id="count">3</div>
+ </div>
+ <div class="controls">
+  <div class="ctrlgroup"><button class="ctrl" id="left">◀</button><button class="ctrl" id="right">▶</button></div>
+  <div class="ctrlgroup"><button class="ctrl" id="brake">BRAKE</button><button class="ctrl big" id="gas">GAS</button><button class="ctrl nitro" id="nitro">NITRO</button></div>
+ </div>
+</section>
+
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const saveKey="madzRushProfile";
+let profile=JSON.parse(localStorage.getItem(saveKey)||"null")||{user:"",pass:"",level:1,coins:1000,wins:0,xp:0,best:Infinity,selected:0,unlocked:[0],track:0};
+let settings=JSON.parse(localStorage.getItem("madzRushSettings")||"null")||{music:true,sfx:true,engine:true,graphics:"High",shadow:true,shake:true,vibration:true,sensitivity:1,musicVol:.45,sfxVol:.65};
+const cars=[
+ {name:"Vortex S",price:0,s:72,a:70,h:74,b:70,body:0x8e35ff},
+ {name:"Night GT",price:500,s:82,a:77,h:68,b:76,body:0x2b8cff},
+ {name:"Apex R",price:900,s:90,a:86,h:80,b:82,body:0xff3b62},
+ {name:"Nova X",price:1500,s:96,a:91,h:88,b:90,body:0xffa52f}
+];
+function persist(){localStorage.setItem(saveKey,JSON.stringify(profile));localStorage.setItem("madzRushSettings",JSON.stringify(settings));}
+function show(id){$$(".screen").forEach(x=>x.classList.remove("active"));$("#"+id).classList.add("active")}
+function updateLobby(){userLabel.textContent=profile.user||"Player";levelLabel.textContent=profile.level;coinLabel.textContent=profile.coins;winLabel.textContent=profile.wins}
+function xpAdd(n){profile.xp+=n;let need=profile.level*100;if(profile.xp>=need){profile.xp-=need;profile.level++}persist()}
+function register(){let u=username.value.trim(),p=password.value;if(!u||p.length<4){loginMsg.textContent="Username wajib diisi dan password minimal 4 karakter.";return}profile={...profile,user:u,pass:p};persist();loginMsg.textContent="Akun dibuat. Tekan LOGIN."}
+function login(){let u=username.value.trim(),p=password.value;if(!profile.user){loginMsg.textContent="Daftar dulu.";return}if(u!==profile.user||p!==profile.pass){loginMsg.textContent="Username/password salah.";return}updateLobby();show("lobby");initShowroom()}
+registerBtn.onclick=register;loginBtn.onclick=login;okBtn.onclick=()=>{if(profile.user)login()}; 
+playBtn.onclick=()=>{show("race");startRace()}; garageBtn.onclick=()=>{renderGarage();show("garage")}; shopBtn.onclick=()=>show("shop");settingsBtn.onclick=()=>{renderSettings();show("settings")};aboutBtn.onclick=()=>show("about");
+$$("[data-close]").forEach(b=>b.onclick=()=>show("lobby"));
+
+function renderGarage(){
+ carGrid.innerHTML=cars.map((c,i)=>`<div class="card ${profile.selected===i?'sel':''}"><div class="carmini">🚘</div><b>${c.name}</b><p class="note">${profile.unlocked.includes(i)?"Unlocked":"🪙 "+c.price}</p><button class="btn ${profile.selected===i?'primary':''}" data-car="${i}">${profile.selected===i?"SELECTED":profile.unlocked.includes(i)?"USE":"UNLOCK"}</button></div>`).join("");
+ $$("[data-car]").forEach(b=>b.onclick=()=>{let i=+b.dataset.car;if(!profile.unlocked.includes(i)){if(profile.coins>=cars[i].price){profile.coins-=cars[i].price;profile.unlocked.push(i)}else return alert("Koin tidak cukup.")}profile.selected=i;persist();renderGarage();updateLobby()});
+ let c=cars[profile.selected];carStats.innerHTML=`<div class="grid">${["Speed","Acceleration","Handling","Braking"].map((n,j)=>`<div class="card"><b>${n}</b><div class="bar"><i style="width:${[c.s,c.a,c.h,c.b][j]}%"></i></div></div>`).join("")}</div>`;
+}
+function renderSettings(){
+ const arr=[["music","Music"],["sfx","Sound Effects"],["engine","Engine Sound"],["shadow","Shadow"],["shake","Camera Shake"],["vibration","Vibration"]];
+ settingsList.innerHTML=arr.map(([k,n])=>`<div class="setting"><span>${n}</span><button class="toggle ${settings[k]?'on':''}" data-set="${k}"><i></i></button></div>`).join("");
+ $$("[data-set]").forEach(b=>b.onclick=()=>{let k=b.dataset.set;settings[k]=!settings[k];persist();renderSettings()});
+ musicVol.value=settings.musicVol;sfxVol.value=settings.sfxVol;
+}
+musicVol.oninput=()=>{settings.musicVol=+musicVol.value;persist()};sfxVol.oninput=()=>{settings.sfxVol=+sfxVol.value;persist()};
+coinsBtn.onclick=()=>{profile.coins+=500;persist();updateLobby();alert("+500 koin!")};
+trackBtn.onclick=()=>{if(profile.coins>=700){profile.coins-=700;profile.track=1;persist();updateLobby();alert("Neon Loop terbuka!")}else alert("Koin tidak cukup.")};
+
+let renderer,scene,camera,clock,showCar,showScene,road,player,ai=[],raceRunning=false,paused=false,startTime=0,lastTime=0,speed=0,nitroEnergy=100,steer=0,gasDown=false,brakeDown=false,nitroDown=false,keys={};
+function makeCar(color=0x8e35ff){
+ const g=new THREE.Group();
+ const body=new THREE.Mesh(new THREE.BoxGeometry(1.7,.48,3.4),new THREE.MeshStandardMaterial({color,metalness:.7,roughness:.25}));
+ body.position.y=.55;g.add(body);
+ const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.3,.45,1.55),new THREE.MeshStandardMaterial({color:0x10131a,metalness:.25,roughness:.18}));
+ cabin.position.set(0,.88,-.1);g.add(cabin);
+ const wheelGeo=new THREE.CylinderGeometry(.31,.31,.18,18), wheelMat=new THREE.MeshStandardMaterial({color:0x111111,roughness:.65});
+ for(const x of [-.83,.83])for(const z of [-1.08,1.08]){let w=new THREE.Mesh(wheelGeo,wheelMat);w.rotation.z=Math.PI/2;w.position.set(x,.35,z);g.add(w)}
+ const lightMat=new THREE.MeshStandardMaterial({color:0x99eaff,emissive:0x55bbff,emissiveIntensity:3});
+ for(const x of [-.55,.55]){let l=new THREE.Mesh(new THREE.BoxGeometry(.28,.08,.05),lightMat);l.position.set(x,.64,-1.72);g.add(l)}
+ return g;
+}
+function initBase(){
+ renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;$("#game").appendChild(renderer.domElement);
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x060711);scene.fog=new THREE.Fog(0x060711,35,190);
+ camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,500);
+ clock=new THREE.Clock();
+ const hemi=new THREE.HemisphereLight(0xb6a7ff,0x101018,1.8);scene.add(hemi);
+ const sun=new THREE.DirectionalLight(0xffffff,2.3);sun.position.set(20,35,10);sun.castShadow=true;scene.add(sun);
+ const ground=new THREE.Mesh(new THREE.PlaneGeometry(300,300),new THREE.MeshStandardMaterial({color:0x101116,roughness:1}));ground.rotation.x=-Math.PI/2;scene.add(ground);
+ animate();
+}
+function roadSystem(){
+ const group=new THREE.Group();
+ const asphalt=new THREE.Mesh(new THREE.PlaneGeometry(14,260),new THREE.MeshStandardMaterial({color:0x202126,roughness:.92}));asphalt.rotation.x=-Math.PI/2;asphalt.position.z=-70;group.add(asphalt);
+ for(let z=50;z>-200;z-=8){let m=new THREE.Mesh(new THREE.BoxGeometry(.18,.015,4.5),new THREE.MeshBasicMaterial({color:0xffffff}));m.position.set(0,.012,z);group.add(m)}
+ for(const x of [-7.25,7.25]){let edge=new THREE.Mesh(new THREE.BoxGeometry(.25,.25,260),new THREE.MeshStandardMaterial({color:0x4d4d58,metalness:.4}));edge.position.set(x,.13,-70);group.add(edge)}
+ for(let z=45;z>-200;z-=12){for(const x of [-10,10]){let pole=new THREE.Mesh(new THREE.CylinderGeometry(.08,.11,4,8),new THREE.MeshStandardMaterial({color:0x35353d,metalness:.6}));pole.position.set(x,2,z);group.add(pole);let lamp=new THREE.PointLight(0x9b55ff,2,10);lamp.position.set(x,4,z);group.add(lamp)}}
+ for(let z=40;z>-190;z-=18){for(const x of [-15,15]){let trunk=new THREE.Mesh(new THREE.CylinderGeometry(.18,.25,2.5,7),new THREE.MeshStandardMaterial({color:0x5b3724}));trunk.position.set(x,1.25,z);group.add(trunk);let crown=new THREE.Mesh(new THREE.SphereGeometry(1.2,10,8),new THREE.MeshStandardMaterial({color:0x143d2c,roughness:1}));crown.position.set(x,2.9,z);group.add(crown)}}
+ scene.add(group);road=group;
+}
+function initShowroom(){
+ if(showScene){showScene.traverse(o=>{});return}
+ showScene=new THREE.Scene();showScene.background=new THREE.Color(0x09070e);
+ const cam=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,100);showScene.userData.cam=cam;
+ const r=new THREE.WebGLRenderer({antialias:true,alpha:true});r.setPixelRatio(Math.min(devicePixelRatio,1.5));r.setSize(innerWidth,innerHeight);r.domElement.style.position="absolute";r.domElement.style.inset="0";r.domElement.style.zIndex="0";$("#showroom").appendChild(r.domElement);showScene.userData.renderer=r;
+ showCar=makeCar(cars[profile.selected].body);showCar.scale.setScalar(1.8);showCar.position.y=0;showScene.add(showCar);
+ const floor=new THREE.Mesh(new THREE.CylinderGeometry(7,7,.25,64),new THREE.MeshStandardMaterial({color:0x17131e,metalness:.6,roughness:.3}));floor.position.y=-.15;showScene.add(floor);
+ const a=new THREE.HemisphereLight(0xb46cff,0x111111,2);showScene.add(a);let p=new THREE.PointLight(0xb34dff,25,20);p.position.set(5,6,5);showScene.add(p);let p2=new THREE.PointLight(0x44aaff,18,18);p2.position.set(-5,3,2);showScene.add(p2);
+ function loop(){requestAnimationFrame(loop);if($("#lobby").classList.contains("active")){showCar.rotation.y+=.003;showCar.position.y=Math.sin(performance.now()*.0015)*.04;cam.position.set(Math.sin(performance.now()*.00018)*9,3.2,Math.cos(performance.now()*.00018)*9);cam.lookAt(0,.5,0);r.render(showScene,cam)}}loop();
+}
+function startRace(){
+ if(!renderer)initBase();
+ show("race");scene.clear(); // rebuild lighting/world
+ const hemi=new THREE.HemisphereLight(0xb6a7ff,0x101018,1.6);scene.add(hemi);const sun=new THREE.DirectionalLight(0xffffff,2.1);sun.position.set(20,35,10);sun.castShadow=true;scene.add(sun);
+ const ground=new THREE.Mesh(new THREE.PlaneGeometry(300,300),new THREE.MeshStandardMaterial({color:0x0c0d11}));ground.rotation.x=-Math.PI/2;scene.add(ground);roadSystem();
+ player=makeCar(cars[profile.selected].body);player.position.set(0,.05,18);player.rotation.y=Math.PI;scene.add(player);
+ ai=[];for(let i=0;i<5;i++){let c=makeCar(cars[(i+1)%cars.length].body);c.position.set((i%3-1)*3.5,.05,12-i*2);c.userData.speed=12+Math.random()*4;scene.add(c);ai.push(c)}
+ camera.position.set(0,3.1,25);camera.lookAt(player.position);
+ speed=0;nitroEnergy=100;steer=0;raceRunning=false;paused=false;startTime=performance.now();lastTime=startTime;
+ countdown();
+}
+async function countdown(){
+ const vals=["3","2","1","GO!"];for(const v of vals){count.textContent=v;await new Promise(r=>setTimeout(r,v==="GO!"?650:800))}count.textContent="";raceRunning=true;startTime=performance.now();lastTime=startTime;
+}
+function endRace(){
+ if(!raceRunning)return;raceRunning=false;let t=(performance.now()-startTime)/1000;let pos=1+ai.filter(x=>x.position.z<player.position.z).length; // smaller z is ahead
+ let reward=Math.max(120,420-(pos-1)*60);profile.coins+=reward;xpAdd(Math.max(30,100-(pos-1)*10));if(pos===1)profile.wins++;
+ if(t<profile.best)profile.best=t;persist();updateLobby();
+ resultPos.textContent=pos===1?"1st":pos===2?"2nd":pos===3?"3rd":pos+"th";resultTime.textContent=format(t);bestTime.textContent=format(profile.best);reward.textContent="+"+reward+" 🪙";xpReward.textContent="+"+Math.max(30,100-(pos-1)*10)+" XP";show("result");
+}
+function format(t){let m=Math.floor(t/60),s=(t%60).toFixed(2);return String(m).padStart(2,"0")+":"+String(s).padStart(5,"0")}
+function updateRace(dt){
+ if(!raceRunning||paused)return;
+ const car=cars[profile.selected];let accel=gasDown?car.a/12:0;let brake=brakeDown?18:0;let boost=nitroDown&&nitroEnergy>0; if(boost){accel+=30;nitroEnergy-=35*dt}else nitroEnergy=Math.min(100,nitroEnergy+7*dt);
+ speed+=accel*dt;speed-=brake*dt;speed-=7*dt;if(!gasDown&&speed<4)speed-=12*dt;speed=Math.max(0,Math.min(car.s/2.2+(boost?16:0),speed));
+ player.position.z-=speed*dt*.32;player.position.x+=steer*dt*(4+speed*.045);player.position.x=Math.max(-5.8,Math.min(5.8,player.position.x));player.rotation.z=-steer*.05;
+ ai.forEach((a,i)=>{a.position.z-=a.userData.speed*dt*.28;a.position.x=Math.sin(performance.now()*.0007+i)*1.5+(i%2?2.3:-2.3);});
+ camera.position.lerp(new THREE.Vector3(player.position.x*.55,3.1,player.position.z+7.5),.08);camera.lookAt(player.position.x,0.6,player.position.z-8);
+ timerHud.textContent=format((performance.now()-startTime)/1000);speed.textContent=Math.round(speed*6);nitroBar.style.width=nitroEnergy+"%";
+ if(player.position.z<-160)endRace();
+}
+function animate(){requestAnimationFrame(animate);let now=performance.now(),dt=Math.min(.05,(now-lastTime)/1000);lastTime=now;if($("#race").classList.contains("active")){updateRace(dt);renderer.render(scene,camera)}}
+
+function bindHold(id,fn,up){let e=$(id);e.addEventListener("pointerdown",ev=>{ev.preventDefault();fn()});e.addEventListener("pointerup",ev=>{ev.preventDefault();up()});e.addEventListener("pointercancel",up);e.addEventListener("pointerleave",up)}
+bindHold("#gas",()=>gasDown=true,()=>gasDown=false);bindHold("#brake",()=>brakeDown=true,()=>brakeDown=false);bindHold("#nitro",()=>nitroDown=true,()=>nitroDown=false);
+bindHold("#left",()=>steer=-1,()=>{if(steer<0)steer=0});bindHold("#right",()=>steer=1,()=>{if(steer>0)steer=0});
+addEventListener("keydown",e=>{keys[e.code]=1;if(e.code==="ArrowLeft")steer=-1;if(e.code==="ArrowRight")steer=1;if(e.code==="ArrowUp")gasDown=true;if(e.code==="ArrowDown")brakeDown=true;if(e.code==="Space")nitroDown=true});
+addEventListener("keyup",e=>{keys[e.code]=0;if(e.code==="ArrowLeft"&&steer<0)steer=0;if(e.code==="ArrowRight"&&steer>0)steer=0;if(e.code==="ArrowUp")gasDown=false;if(e.code==="ArrowDown")brakeDown=false;if(e.code==="Space")nitroDown=false});
+pauseBtn.onclick=()=>{paused=!paused;pauseBtn.textContent=paused?"▶":"Ⅱ"};
+retryBtn.onclick=()=>startRace();nextBtn.onclick=()=>startRace();backBtn.onclick=()=>{updateLobby();show("lobby");initShowroom()};
+addEventListener("resize",()=>{if(renderer){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}});
+updateLobby();
+</script>
+</body>
+</html>
